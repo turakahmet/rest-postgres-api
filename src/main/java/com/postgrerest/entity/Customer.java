@@ -13,7 +13,6 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(of={"id"})
-@ToString
 public class Customer implements Serializable {
     @Id
     @SequenceGenerator(name="seq_customer",allocationSize = 1)

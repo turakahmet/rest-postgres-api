@@ -1,73 +1,75 @@
 package com.postgrerest.service.impl;
 
+import com.postgrerest.dao.BaseDao;
 import com.postgrerest.dto.CustomerDto;
-import com.postgrerest.dto.OrderDto;
 import com.postgrerest.entity.Customer;
-import com.postgrerest.entity.Order;
+import com.postgrerest.hibernate.HibernateUtil;
 import com.postgrerest.repository.CustomerRepository;
 import com.postgrerest.repository.OrderRepository;
 import com.postgrerest.service.CustomerService;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.weaver.ast.Or;
+import org.hibernate.Hibernate;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.provider.HibernateUtils;
+import org.springframework.orm.hibernate5.support.HibernateDaoSupport;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityTransaction;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CustomerServiceImpl  implements CustomerService {
+public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
 
+    @Autowired
+    private BaseDao baseDao;
+
     @Override
     @Transactional
-    public CustomerDto save(CustomerDto customerDto) {
-
-        Customer customer=new Customer();
-        customer.setCustomerName(customerDto.getCustomerName());
-        customer.setCustomerSurname(customerDto.getCustomerSurname());
-        customer.setCity(customerDto.getCity());
-        customer.setType(customerDto.getType());
-        final Customer customerDb= customerRepository.save(customer);
-        List<Order> orderList=new ArrayList<>();
-
-        customerDto.getOrderList().forEach(item->{
-            Order order=new Order();
-            order.setCustomer(customerDb);
-            order.setAmount(item.getAmount());
-            order.setOrderName(item.getOrderName());
+    public void save(Customer customer) {
+        Customer savedCustomer =customerRepository.save(customer);
+        savedCustomer.getOrderList().forEach(order -> {
+            order.setCustomer(savedCustomer);
             orderRepository.save(order);
         });
-        customerDto.setId(customerDb.getId());
-        return customerDto;
     }
 
     @Override
     public void delete(Long id) {
-
+        customerRepository.deleteById(id);
     }
 
     @Override
     public List<CustomerDto> getAll() {
         List<Customer> customerList=customerRepository.findAll();
         List<CustomerDto> customerDtoList = new ArrayList<>();
-            customerList.forEach(ct->{
-            CustomerDto customerDto=new CustomerDto();
-            customerDto.setId(ct.getId());
-            customerDto.setCustomerName(ct.getCustomerName());
-            customerDto.setCustomerSurname(ct.getCustomerSurname());
-            customerDto.setCity(ct.getCity());
-            List<OrderDto> orderDtoList=new ArrayList<>();
-            ct.getOrderList().forEach(item->{
-                orderDtoList.add(new OrderDto(item.getOrderName(),item.getAmount()));
-            });
-            customerDto.setOrderList(orderDtoList);
-                customerDtoList.add(customerDto);
+        customerList.forEach(ct -> {
+            customerDtoList.add(new CustomerDto(ct));
         });
         return customerDtoList;
+    }
+
+    @Override
+    public Customer getCustomerById(Long id) {
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        EntityManager entityManager =sessionFactory.createEntityManager();
+        EntityTransaction transaction=entityManager.getTransaction();
+        transaction.begin();
+        Session session = sessionFactory.openSession();
+        Query query = session.createQuery(
+                "select new Map(c.customerName as musteri_ad,c.city as musteri_sehri) from Customer c where c.id =:id ");
+        query.setParameter("id", id);
+        Customer customer = (Customer) query.uniqueResult();
+        transaction.commit();
+        return customer;
     }
 }

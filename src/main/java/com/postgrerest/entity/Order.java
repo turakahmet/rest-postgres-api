@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @EqualsAndHashCode(of={"id"})
-@ToString
 public class Order {
     @Id
     @SequenceGenerator(name="seq_siparis",allocationSize = 1)

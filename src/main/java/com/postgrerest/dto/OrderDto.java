@@ -1,10 +1,11 @@
 package com.postgrerest.dto;
 
 
-import com.postgrerest.entity.Customer;
+import com.postgrerest.entity.Order;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class OrderDto {
@@ -12,7 +13,8 @@ public class OrderDto {
     private String orderName;
     private BigDecimal amount;
 
-    public OrderDto(String orderName, BigDecimal amount) {
+    public OrderDto(Long id, String orderName, BigDecimal amount) {
+        this.id=id;
         this.orderName=orderName;
         this.amount=amount;
     }

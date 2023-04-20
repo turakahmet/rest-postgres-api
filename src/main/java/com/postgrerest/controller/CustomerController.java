@@ -3,8 +3,9 @@ package com.postgrerest.controller;
 
 import com.postgrerest.dto.CustomerDto;
 import com.postgrerest.entity.Customer;
+import com.postgrerest.entity.hataMessages.hataMesaj.HataMesaj;
 import com.postgrerest.service.CustomerService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,18 +13,32 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/customer")
-@RequiredArgsConstructor
 public class CustomerController {
 
     private final CustomerService customerService;
 
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
     @PostMapping
-    public ResponseEntity<CustomerDto> kaydet(@RequestBody CustomerDto customerDto) {
-        return ResponseEntity.ok(customerService.save(customerDto));
+    public ResponseEntity<String> kaydet(@RequestBody Customer customer) {
+        try {
+            customerService.save(customer);
+            return new ResponseEntity<>("Müşteri başarıyla kaydedildi.", HttpStatus.CREATED);
+        } catch (Exception e) {
+            throw new RuntimeException(HataMesaj.KAYIT_EKLERKEN_HATA.getEtiket()+e.getMessage());
+        }
     }
 
     @GetMapping
     public ResponseEntity<List<CustomerDto>> tumunuListele() {
         return ResponseEntity.ok(customerService.getAll());
+    }
+
+    @RequestMapping(value = "/customer/{id}", method = RequestMethod.GET)
+    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") Long id) {
+        Customer customer = customerService.getCustomerById(id);
+        return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 }
