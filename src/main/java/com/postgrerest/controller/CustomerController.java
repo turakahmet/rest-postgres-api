@@ -36,9 +36,13 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getAll());
     }
 
-    @RequestMapping(value = "/customer/{id}", method = RequestMethod.GET)
-    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") Long id) {
-        Customer customer = customerService.getCustomerById(id);
-        return new ResponseEntity<>(customer, HttpStatus.OK);
+    @RequestMapping(value = "byId", method = RequestMethod.GET)
+    public CustomerDto findCustomerById(@RequestParam("id") long id) {
+        try {
+            CustomerDto customerDto=new CustomerDto(customerService.getCustomerById(id));
+            return new ResponseEntity<>(customerDto, HttpStatus.OK).getBody();
+        } catch (Exception e) {
+            return new ResponseEntity<CustomerDto>(HttpStatus.NOT_FOUND).getBody();
+        }
     }
 }

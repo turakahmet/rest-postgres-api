@@ -9,13 +9,24 @@ import java.util.List;
 
 @Data
 public class OrderDto {
-    private Long id;
     private String orderName;
     private BigDecimal amount;
 
     public OrderDto(Long id, String orderName, BigDecimal amount) {
-        this.id=id;
         this.orderName=orderName;
         this.amount=amount;
+    }
+
+    public OrderDto(List<Order> orderList) {
+        for (Order values :orderList){
+            this.orderName=values.getOrderName();
+            this.amount=values.getAmount();
+        }
+    }
+
+
+    public OrderDto(Order order) {
+        this.orderName=order.getOrderName();
+        this.amount=order.getAmount();
     }
 }
